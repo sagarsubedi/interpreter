@@ -16,6 +16,7 @@ func Start(in io.Reader, out io.Writer) {
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
+
 		if !scanned {
 			return
 		}
