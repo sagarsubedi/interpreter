@@ -13,6 +13,7 @@ func checkParsesErrors(t *testing.T, p *Parser) {
 		return
 	}
 
+
 	t.Errorf("parses has %d errors", len(errors))
 	for _, msg := range errors {
 		t.Errorf("parers error: %q", msg)
@@ -97,7 +98,12 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{
 
 	case string:
 		return testIdentifier(t, exp, v)
+	case bool:
+		return testBooleanLiteral(t, exp, v)
 	}
+
+
+
 
 	t.Errorf("type of exp not handled. got=%T", exp)
 	return false
@@ -389,6 +395,22 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 + 4 * 5 == 3 * 1 + 4 * 5",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
 		},
+		{
+			"true",
+			"true",
+		},
+		{
+			"false",
+			"false",
+		},
+		{
+			"3 > 5 == false",
+			"((3 > 5) == false)",
+		},
+		{
+			"3 < 5 == true",
+			"((3 < 5) == true)",
+		},
 	}
 
 	for _, tt := range tests {
@@ -402,4 +424,41 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			t.Errorf("expected=%q, got=%q", tt.expected, actual)
 		}
 	}
+}
+
+func TestBooleanExpression(t *testing.T) {
+	input := "true"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParsesErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("program.Statements[0] is not as.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	boolean, ok := stmt.Expression.(*ast.Boolean)
+
+	if !ok {
+		t.Fatalf("exp not *ast.Boolean. got =%T", stmt.Expression)
+	}
+
+	if boolean.Value != true {
+		t.Errorf("boolean.Value not %t. got=%t", true, boolean.Value)
+	}
+	if boolean.TokenLiteral() != "true" {
+		t.Errorf("boolean.TokenLiteral not %s. got=%s", "true", boolean.TokenLiteral())
+	}
+}
+
+func testBooleanLiteral(t *testing.T, exp ast.Expression, valu bool) bool {
+	bo, ok :=
 }
